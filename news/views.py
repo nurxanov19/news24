@@ -1,8 +1,9 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from .models import Category, News, Contact
 from datetime import datetime
-from .forms import ContactForm
+from .forms import ContactForm, CommentForm
 from django.contrib import messages
+from user.models import Comment
 
 
 def get_date():
@@ -58,6 +59,28 @@ def detail(request, pk):
     new = News.objects.get(pk=pk)
     news = News.objects.filter(category__title=new.category).order_by('-date')
     popular_news = News.objects.filter(category__title=new.category).order_by('views')
+    comments = Comment.objects.filter(post__title = new.title).order_by('-created_at')
+    post = None
+
+    if request.POST:
+        post_id = request.POST.get('post_id')
+
+        if post_id:
+            post = get_object_or_404(Comment, id=post_id)
+            if post.like.filter(id=request.user.id):
+                post.like.remove(request.user)
+            else:
+                post.like.add(request.user)
+
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.user = request.user
+            comment.post = new
+            comment.save()
+            return redirect('detail', pk=new.pk)
+    else: form = CommentForm()
+
     new.views += 1
     new.save()
 
@@ -67,6 +90,9 @@ def detail(request, pk):
         'popular_news': popular_news,
         'ctg': get_categories(),
         'date': get_date(),
+        'form': form,
+        'comments': comments,
+        'post': post,
     }
     return render(request, 'single_page.html', context)
 

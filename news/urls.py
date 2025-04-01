@@ -1,6 +1,7 @@
 from django.urls import path
 from .views import index, contact, detail, error_page, category
 
+#app_name = 'news'
 urlpatterns = [
     path('', index, name='index'),
     path('contact/', contact, name='contact'),

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ user.username }}'s Profile</title>
+</head>
+<body>
+    <h1>{{ user.username }}'s Profile</h1>
+
+    {% if profile.profile_picture %}
+        <img src="{{ profile.profile_picture.url }}" alt="{{ user.username }}'s Profile Picture" width="150">
+    {% else %}
+        <p>No profile picture available</p>
+    {% endif %}
+
+    <h3>Bio:</h3>
+    <p>{{ profile.bio|default:"No bio available" }}</p>
+
+    <p><strong>Joined on:</strong> {{ profile.created_at|date:"F d, Y" }}</p>
+
+
+</body>
+</html>

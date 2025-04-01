@@ -234,6 +234,39 @@
               <li><a href="#">Life &amp; Style</a></li>
             </ul>
           </div>
+
+          <!-- Comment Section -->
+<!-- Kommentlar Ro‘yxati -->
+<div class="comments_section">
+    <h2>Comments <i class="fa fa-comments"></i></h2>
+    {% for comment in comments %}
+    <div class="comment">
+        <p><strong>{{ comment.user.username }}</strong> - {{ comment.created_at|date:"F j, Y, g:i a" }}</p>
+        <p>{{ comment.content }}</p>
+
+        <!-- Like Button -->
+        <form method="POST" action="{% url 'detail' pk=new.pk %}">
+            {% csrf_token %}
+            <input type="hidden" name="post_id" value="{{ comment.id }}">
+            <button type="submit" class="like-btn">
+                👍 Like ({{ comment.like.count }})
+            </button>
+        </form>
+    </div>
+{% endfor %}
+
+</div>
+
+<!-- Komment Qo‘shish Formasi -->
+<div class="comment_form">
+    <h3>Leave a Comment</h3>
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+</div>
+
         </aside>
       </div>
     </div>

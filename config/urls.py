@@ -25,6 +25,7 @@ from django.conf import settings
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('news.urls')),
+    path('register/', include('user.urls')),
     path('ckeditor5/', include('django_ckeditor_5.urls')),
 
 ]
