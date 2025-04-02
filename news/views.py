@@ -1,4 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.utils.timezone import now
+
 from .models import Category, News, Contact
 from datetime import datetime
 from .forms import ContactForm, CommentForm
@@ -61,6 +63,7 @@ def detail(request, pk):
     popular_news = News.objects.filter(category__title=new.category).order_by('views')
     comments = Comment.objects.filter(post__title = new.title).order_by('-created_at')
     post = None
+    editing_comment = request.GET.get('edit_comment', None)
 
     if request.POST:
         post_id = request.POST.get('post_id')
@@ -93,6 +96,8 @@ def detail(request, pk):
         'form': form,
         'comments': comments,
         'post': post,
+        'user': request.user,
+        'editing_comment': int(editing_comment) if editing_comment else None,
     }
     return render(request, 'single_page.html', context)
 
@@ -112,3 +117,31 @@ def category(request, pk):
     return render(request, 'category.html', context)
 
 
+from django.utils.timezone import now
+
+def edit_comment(request, pk):
+    comment = get_object_or_404(Comment, id=pk)
+    new = get_object_or_404(News, pk=comment.post.pk)  # Ensure correct News instance
+
+    if comment.user != request.user:
+        return redirect('detail', pk=new.pk)
+
+    if request.method == 'POST':
+        form = CommentForm(request.POST, instance=comment)
+
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.edited_at = now()  # Update the timestamp
+            comment.save()
+            return redirect('detail', pk=new.pk)
+
+    else:
+        form = CommentForm(instance=comment)
+
+    return render(request, 'single_page.html', {
+        'comments': Comment.objects.filter(post=new).order_by('-created_at'),
+        'new': new,
+        'editing_comment': comment.id,
+        'user': request.user,
+        'form': form,
+    })

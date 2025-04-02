@@ -35,6 +35,13 @@
               <li><a href="{% url 'index' %}">Home</a></li>
               <li><a href="{% url 'error-page' %}">About</a></li>
               <li><a href="{% url 'contact' %}">Contact</a></li>
+              {% if user.is_authenticated %}
+            <li><a href="{% url 'profile' %}">Profile</a></li>
+            <li><a href="{% url 'logout' %}">Logout</a></li>
+        {% else %}
+            <li><a href="{% url 'signup' %}">Sign Up</a></li>
+            <li><a href="{% url 'login' %}">Login</a></li>
+        {% endif %}
             </ul>
           </div>
           <div class="header_top_right">
@@ -241,8 +248,32 @@
     <h2>Comments <i class="fa fa-comments"></i></h2>
     {% for comment in comments %}
     <div class="comment">
-        <p><strong>{{ comment.user.username }}</strong> - {{ comment.created_at|date:"F j, Y, g:i a" }}</p>
-        <p>{{ comment.content }}</p>
+        <p>
+            <strong>{{ comment.user.username }}</strong> -
+            {{ comment.created_at|date:"F j, Y, g:i a" }}
+            {% if comment.edited_at %}
+                <span>(Edited: {{ comment.edited_at|date:"F j, Y, g:i a" }})</span>
+            {% endif %}
+        </p>
+
+        <!-- Comment content and edit form -->
+        {% if comment.user == user and editing_comment == comment.id %}
+            <form method="POST" action="{% url 'edit_comment' pk=comment.id %}">
+                {% csrf_token %}
+                <textarea name="content" required>{{ comment.content }}</textarea>
+                <button type="submit">Save</button>
+                <button type="button" onclick="window.location.href='{% url 'detail' pk=comment.post.pk %}'">Cancel</button>
+            </form>
+        {% else %}
+            <p>{{ comment.content }}</p>
+        {% endif %}
+
+        <!-- Edit Button (shows only for comment owner) -->
+        {% if comment.user == user and editing_comment != comment.id %}
+            <form method="GET" action="{% url 'edit_comment' pk=comment.id %}">
+                <button type="submit" class="edit-btn">Edit</button>
+            </form>
+        {% endif %}
 
         <!-- Like Button -->
         <form method="POST" action="{% url 'detail' pk=new.pk %}">
@@ -254,7 +285,6 @@
         </form>
     </div>
 {% endfor %}
-
 </div>
 
 <!-- Komment Qo‘shish Formasi -->
